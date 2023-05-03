@@ -1,0 +1,27 @@
+{
+    "id": "powershell",
+    "version": "1.1.0",
+    "name": "PowerShell",
+    "documentationURL": "https://github.com/devcontainers/features/tree/main/src/powershell",
+    "description": "Installs PowerShell along with needed dependencies. Useful for base Dockerfiles that often are missing required install dependencies like gpg.",
+    "options": {
+        "version": {
+            "type": "string",
+            "proposals": [
+                "latest",
+                "none",
+                "7.1"
+            ],
+            "default": "latest",
+            "description": "Select or enter a version of PowerShell."
+        },
+        "modules": {
+            "type": "string",
+            "default": "",
+            "description": "Optional comma separated list of PowerShell modules to install."
+          }
+        },
+    "installsAfter": [
+        "ghcr.io/devcontainers/features/common-utils"
+    ]
+}

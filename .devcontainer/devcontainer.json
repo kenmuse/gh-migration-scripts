@@ -1,0 +1,71 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/powershell
+{
+	"name": "PowerShell",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/dotnet:7.0-jammy", //2.05GB; 7.0-bullseye=2.08
+	// works (amd64): "mcr.microsoft.com/powershell:lts-debian-11", //
+	// fails: "mcr.microsoft.com/powershell:lts-ubuntu-22.04-arm32",
+	"features": {
+		"ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": true,
+			"installOhMyZsh": true,
+			"upgradePackages": true,
+			"username": "automatic",
+			"userUid": "automatic",
+			"userGid": "automatic"
+		},
+		"ghcr.io/devcontainers/features/dotnet:1": {
+			"installUsingApt": true,
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/github-cli:1": {
+			"installDirectlyFromGitHubRelease": true,
+			"version": "latest"
+		},
+		//"ghcr.io/devcontainers/features/powershell:1": {
+		"./features/src/powershell": {
+			"version": "latest"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"nodeGypDependencies": true,
+			"version": "lts"
+		},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {
+			"installDockerBuildx": true,
+			"moby": false,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		}
+	},
+
+	"postCreateCommand": "sudo chsh vscode -s \"$(which pwsh)\"",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		// Configure properties specific to VS Code.
+		"vscode": {
+			// Set *default* container specific settings.json values on container create.
+			"settings": { 
+				"terminal.integrated.defaultProfile.linux": "pwsh",
+				"powershell.powerShellDefaultVersion": "Installed",
+				"powershell.powerShellAdditionalExePaths": {
+					"Installed": "/usr/local/bin/pwsh"
+				  }
+			},
+			
+			// Add the IDs of extensions you want installed when the container is created.
+			"extensions": [
+				"ms-vscode.PowerShell",
+				"pspester.pester-test",
+				"GitHub.copilot"
+			]
+		}
+	}
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

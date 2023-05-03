@@ -50,7 +50,7 @@
 				"terminal.integrated.defaultProfile.linux": "pwsh",
 				"powershell.powerShellDefaultVersion": "Installed",
 				"powershell.powerShellAdditionalExePaths": {
-					"Installed": "/usr/local/bin/pwsh"
+					"Installed": "/usr/bin/pwsh"
 				  }
 			},
 			

@@ -84,7 +84,7 @@ function Invoke-RestApi {
         [string] $method = 'GET',
         [string] $body = $null,
         [securestring] $token,
-        [int] $maxPages = 10
+        [int] $maxPages = [int]::MaxValue
     )
 
     Write-Debug "Query: $url"

@@ -23,7 +23,8 @@ param(
     [string]$dest,
     [Parameter(Mandatory=$false,
       HelpMessage = "The GitHub destination organization PAT")]
-    [securestring]$destPat = (ConvertTo-SecureString -String $env:GH_PAT -AsPlainText -Force)
+    [securestring]$destPat = (ConvertTo-SecureString -String $env:GH_PAT -AsPlainText -Force),
+    [switch]$debugRequests=$false
 )
 
 Set-StrictMode -Version Latest
@@ -82,10 +83,14 @@ function Invoke-RestApi {
         [string] $url,
         [string] $method = 'GET',
         [string] $body = $null,
-        [securestring] $token
+        [securestring] $token,
+        [int] $maxPages = 10
     )
 
-    Write-Debug "$($MyInvocation.MyCommand): $url ($method)"
+    Write-Debug "Query: $url"
+    if (--$maxPages -lt 0){
+        throw "No more pages allowed for processing"
+    }
 
     $headers = @{
         Accept = 'application/vnd.github+json'
@@ -95,7 +100,51 @@ function Invoke-RestApi {
 
     $response = Invoke-WebRequest -Authentication Bearer -Token $token `
                       -URI $url -Method $method -Headers $headers -Body $body
-    $response.Content | ConvertFrom-Json
+    $results = $response.Content | ConvertFrom-Json
+
+    if ($DebugPreference -eq 'Continue' -and $debugRequests){
+        $script:fileCounter++
+        $fileName = "dbg-secrets-request-{0:d4}.txt" -f $script:fileCounter
+        Write-Debug "Writing response to $fileName"
+        $response.RawContent | Out-File -FilePath $fileName -Encoding utf8
+    }
+
+    $pageLink = if ($response.Headers.ContainsKey('Link')) { $response.Headers['Link'] } else { $null }
+    
+    if ($pageLink){
+        Write-Debug "Server indicated multiple pages available"
+        $pageLinks = [Regex]::Matches($pageLink, '<([\S]*)>; rel="([^"]{4,5})"')
+        $last = $pageLinks | Where-Object { $_.Groups[2].Value -eq 'last' } | Select-Object -First 1
+        if ($last -and $last.Groups[1].Value -ne $url) {
+            $next = $pageLinks| Where-Object { $_.Groups[2].Value -eq 'next' } | Select-Object -First 1
+            if ($next) {
+                $linkUrl = $next.Groups[1].Value
+                if ($linkUrl -ne $url){
+                    $nestedResponse = Invoke-RestApi -url $linkUrl -token $token -maxPages $maxPages
+                    $resultsHasTotal =  [bool]($results.PSobject.Properties.name -match 'total_count')
+                    $responseHasTotal =  [bool]($nestedResponse.PSobject.Properties.name -match 'total_count')
+                    
+                    if ($resultsHasTotal -and $responseHasTotal) {
+                        $results.total_count += $nestedResponse.total_count
+                        $results.PSObject.properties | Write-Debug
+                        $arrField = $results.PSObject.properties | Where-Object { $_.TypeNameOfValue -eq 'System.Object[]' } | Select-Object -First 1
+                        if ($null -eq $arrField) {
+                            throw 'Could not find pageable array.'
+                        }
+                        $field = $arrField.Name
+                        $results.$field += $nestedResponse.$field
+                    }
+                    else {
+                        if ($results -isnot [array]) {
+                            $results = @($results)
+                        }
+                        $results += $nestedResponse
+                    }
+                }
+            }
+        }
+    }
+    $results
 }
 
 function Get-Repository {

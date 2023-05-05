@@ -17,9 +17,9 @@ Currently it looks to resolve users in the source by scanning the related org SS
 - Source does not scan the verifiedDomainEmails for possible matches
 - Script currently does not capture roles fully. It uses GraphQL, so it returns high-level permissions. To capture roles, a query would be needed for each repository.
 - Object serialization for debugging is limited to a depth of 20 for most GraphQL calls
-- REST call paging is currently set with a default limit of 10 pages (via the maxPages variable on `Invoke-RestApi`)
+- REST call paging is currently unlimited, configurable via the maxPages variable on `Invoke-RestApi`
 - Array results from multiple paged requests are currently concatenated to the paged node, with the final request's `pageInfo` returned for GraphQL
-- GraphQL paging does not currently have a recursion/depth guard
+- GraphQL paging is unlimited and does not currently have a recursion/depth guard
 
 
 `rebuildPermissions` uses two generated CSVs to rebuild the Team permissions and the direct repository permissions. At the moment, it assumes the Teams exist.
@@ -30,7 +30,7 @@ Currently it looks to resolve users in the source by scanning the related org SS
 
 ## Paging
 
-Dynamic paging is implemented for the calls. For REST APIs, it reads the headers and collects up to 10 pages (configurable). The results are concatenated into a single array that is returned. For the GraphQL calls, the code looks for the first `pageInfo` block and the first array at the same level. It will look up to 6 levels deep in the results. If more pages exist (`hasMorePages`), the code will automatically paginate the results and concatenate the arrays. The final `pageInfo` block will be returned. It currently retrieves all pages unless pagination is disabled (`$paginate=false`)
+Dynamic paging is implemented for the calls. For REST APIs, it reads the headers and collects all returned pages (configurable). The results are concatenated into a single array that is returned as a result. For the GraphQL calls, the code looks for the first `pageInfo` block and the first array at the same level. It will look up to 6 levels deep in the results. If more pages exist (`hasMorePages`), the code will automatically paginate the results and concatenate the arrays. The final `pageInfo` block will be returned. It currently retrieves all pages unless pagination is disabled (`$paginate=false`)
 
 ## Debug
 

@@ -171,7 +171,7 @@ function Get-OrgRepositories {
     )
 
     Write-Debug "$($MyInvocation.MyCommand) ($org)"
-    $url = "https://api.github.com/orgs/$org/repos"
+    $url = "https://api.github.com/orgs/$org/repos?per_page=100"
     Invoke-RestApi -url $url -token $token
 }
 

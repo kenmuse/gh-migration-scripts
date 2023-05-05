@@ -98,7 +98,7 @@ function Invoke-RestApi {
         'X-GitHub-Api-Version' = '2022-11-28'
     }
 
-    $response = Invoke-WebRequest -Authentication Bearer -Token $token `
+    $response = Invoke-WebRequest -Authentication Bearer -Token $token -HttpVersion 2.0 `
                       -URI $url -Method $method -Headers $headers -Body $body
     $results = $response.Content | ConvertFrom-Json
 
